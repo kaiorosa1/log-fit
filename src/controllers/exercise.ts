@@ -112,3 +112,51 @@ export const getExerciseById = async (req: Request, res: Response) => {
     res.status(500).send("Error getting exercise: " + error.message);
   }
 };
+
+export const updateExercise = async (req: Request, res: Response) => {
+  try {
+   
+    const exerciseId = req.params.id;
+    const updateData = req.body;
+
+    const exerciseRepository = AppDataSource.getRepository(Exercise);
+    const exercise = await exerciseRepository.findOne({
+      where: { id: exerciseId, user: req.user },
+    });
+
+    if (!exercise) {
+      return res.status(404).send("Exercise not found.");
+    }
+
+    // Update only the provided fields (partial update)
+    exerciseRepository.merge(exercise, updateData); 
+    const updatedExercise = await exerciseRepository.save(exercise);
+
+    res.status(200).send(updatedExercise);
+  } catch (error) {
+    res.status(500).send("Error updating exercise: " + error.message);
+  }
+};
+
+export const deleteExercise = async (req: Request, res: Response) => {
+  try {
+
+    const exerciseId = req.params.id;
+
+    const exerciseRepository = AppDataSource.getRepository(Exercise);
+    const exercise = await exerciseRepository.findOne({
+      where: { id: exerciseId, user: req.user },
+    });
+
+    if (!exercise) {
+      return res.status(404).send("Exercise not found.");
+    }
+
+    await exerciseRepository.remove(exercise);
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).send("Error deleting exercise: " + error.message);
+  }
+};
+
